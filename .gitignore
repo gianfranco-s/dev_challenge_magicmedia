@@ -1,0 +1,10 @@
+# generic
+.env
+.venv
+
+# python
+__pycache__/
+
+# project
+Python Dev - Practical Test.pdf
+proto/
