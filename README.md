@@ -28,5 +28,31 @@ Please submit your resulting code in a zip or share a GitHub link.
 
 
 ## Additional comments
-Run in the command line
-locust --headless --users 10 --spawn-rate 1 -H http://your-server.com
+
+### Install Evans
+1. Download from https://github.com/ktr0731/evans/releases
+2. Unzip
+   ```
+   tar xvf evans_linux_amd64.tar.gz
+   ```
+3. Move binary
+   ```
+   sudo mv evans /usr/local/bin
+   ```
+
+### Create users
+1. Create a burner email on https://temp-mail.org/
+2. Run evans in the proto/ directory
+   ```
+   evans --proto auth_service.proto --host <url> --port <port>
+   ```
+3. Create user
+   ```
+   > call SignUpUser
+   ```
+   An email will be sent to the previously email the user registered
+4. Get verification code from email, and run
+   ```
+   > call VerifyEmail
+   ```
+5. Repeat twice
