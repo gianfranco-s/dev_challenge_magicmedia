@@ -24,7 +24,6 @@ Use [BloomRPC](https://github.com/bloomrpc/bloomrpc) or [Evans](https://github.c
 3. In the background the locust user should fetch a list of all vacancies available on the server every 45 seconds.
 
 Report the response times of the gRPC request in locust as well as any errors that would be returned by the gRPC server.
-Please submit your resulting code in a zip or share a GitHub link.
 
 
 ## Additional comments
@@ -56,3 +55,18 @@ Please submit your resulting code in a zip or share a GitHub link.
    > call VerifyEmail
    ```
 5. Repeat twice
+
+### Convert .proto files to .py
+Run from project's root dir
+```
+python -m grpc_tools.protoc \
+   --proto_path=./proto \
+   --grpc_python_out=./src/proto_py \
+   --python_out=./src/proto_py \
+   ./proto/*.proto
+```
+
+### Run Locust
+```
+$ locust --headless --users 10 --spawn-rate 1 -H http://your-server.com
+```
