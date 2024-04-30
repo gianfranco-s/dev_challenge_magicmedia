@@ -2,10 +2,10 @@
 """Client and server classes corresponding to protobuf-defined services."""
 import grpc
 
-import auth_service_pb2 as auth__service__pb2
-import rpc_signin_user_pb2 as rpc__signin__user__pb2
-import rpc_signup_user_pb2 as rpc__signup__user__pb2
-import user_pb2 as user__pb2
+import proto_py.auth_service_pb2 as auth__service__pb2
+import proto_py.rpc_signin_user_pb2 as rpc__signin__user__pb2
+import proto_py.rpc_signup_user_pb2 as rpc__signup__user__pb2
+import proto_py.user_pb2 as user__pb2
 
 
 class AuthServiceStub(object):
