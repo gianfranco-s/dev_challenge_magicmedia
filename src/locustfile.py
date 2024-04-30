@@ -16,17 +16,13 @@ class VacancyUser(HttpUser):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.channel = create_channel(self.host)
-
-        users = self._load_users()
-        self._login(**users[0])
+        self.users = self._load_users()
 
     @task
     def vacancy_flow_test(self):
-        vacancy_test(self.channel)
-
-    def _login(self, name: str, email: str, password: str) -> None:
-        is_user_signed_in = user_signin(email, password, self.channel)
-        print(f'User {name} is signed in: {is_user_signed_in}\n')
+        for user in self.users:
+            user_signin(self.channel, **user, verbose=True)
+            vacancy_test(self.channel, verbose=True)
 
     @staticmethod
     def _load_users(users_filename: str = 'test_users.json') -> List[dict]:

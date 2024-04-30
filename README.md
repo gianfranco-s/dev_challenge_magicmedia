@@ -80,5 +80,5 @@ python3 grpc_handlers.py
 
 ### Run locust tests
 ```
-locust --headless --users 3 --run-time 60
+locust --headless --users 3
 ``````
