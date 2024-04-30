@@ -12,7 +12,7 @@ def user_signin(user_email: str, user_pwd: str, channel: Channel) -> bool:
 
     sign_in_request = rpc__signin__user__pb2.SignInUserInput(email=user_email, password=user_pwd)
 
-    try: 
+    try:
         response = auth_stub.SignInUser(sign_in_request)
         is_user_signed_in = response.status == 'success'
     except _InactiveRpcError as e:

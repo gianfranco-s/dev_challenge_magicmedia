@@ -2,7 +2,7 @@ from dataclasses import dataclass, asdict
 from enum import Enum
 from typing import List
 
-from grpc import Channel, insecure_channel
+from grpc import insecure_channel
 
 import proto_py.rpc_create_vacancy_pb2 as rpc__create__vacancy__pb2
 import proto_py.rpc_update_vacancy_pb2 as rpc__update__vacancy__pb2
@@ -92,10 +92,10 @@ if __name__ == '__main__':
 
     with open('test_users.json', 'r') as f:
         registered_user = json.load(f)[0]
-    
+
     vacancy_handler = VacancyHandler(VACANCY_SERVER_URL)
     channel = vacancy_handler.channel
-    
+
     is_user_signed_in = user_signin(registered_user['email'], registered_user['password'], channel)
     print(f'User {registered_user["name"]} is signed in: {is_user_signed_in}\n')
 
