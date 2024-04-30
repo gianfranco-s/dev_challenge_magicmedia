@@ -26,7 +26,7 @@ Use [BloomRPC](https://github.com/bloomrpc/bloomrpc) or [Evans](https://github.c
 Report the response times of the gRPC request in locust as well as any errors that would be returned by the gRPC server.
 
 
-## Additional comments
+## Step-by-step solution
 
 ### Install Evans
 1. Download from https://github.com/ktr0731/evans/releases
@@ -55,6 +55,7 @@ Report the response times of the gRPC request in locust as well as any errors th
    > call VerifyEmail
    ```
 5. Repeat twice
+6. Store user data for later use in an json file
 
 ### Convert .proto files to .py
 Run from project's root dir
@@ -66,7 +67,8 @@ python -m grpc_tools.protoc \
    ./proto/*.proto
 ```
 
-### Run Locust
+### Run a sanity check
+To check if connection to the server is available. Run the script from the project's root directory:
 ```
-$ locust --headless --users 10 --spawn-rate 1 -H http://your-server.com
+python3 src/sanity_check.py
 ```

@@ -33,7 +33,7 @@ def sign_in_user(user_email: str, user_pwd: str, server_address: str = VACANCY_S
     
 
 if __name__ == "__main__":
-    with open('../test_users.json', 'r') as f:
+    with open('test_users.json', 'r') as f:
         test_users = json.load(f)
     
     registered_user = test_users[0]
