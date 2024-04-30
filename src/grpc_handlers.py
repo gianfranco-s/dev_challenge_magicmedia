@@ -1,7 +1,7 @@
+import json
 import random
 
 from dataclasses import dataclass, asdict
-from datetime import datetime
 from enum import Enum
 from typing import List
 
@@ -163,36 +163,47 @@ class VacancyHandler:
                            updated_at=vacancy.updated_at)
 
 
-if __name__ == '__main__':
-    import json
-
-    from dotenv import dotenv_values
-
-    VACANCY_SERVER_URL = dotenv_values().get('VACANCY_SERVER_URL')
-
-    with open('test_users.json', 'r') as f:
-        registered_user = json.load(f)[0]
-
-    channel = create_channel(VACANCY_SERVER_URL)
-
-    is_user_signed_in = user_signin(registered_user['email'], registered_user['password'], channel)
-    print(f'User {registered_user["name"]} is signed in: {is_user_signed_in}\n')
+def vacancy_test(channel: Channel, verbose: bool = True) -> None:
+    """Manual test of all VacancyHandler methods"""
 
     vacancy_handler = VacancyHandler(channel)
     vacancy_item = VacancyCreate.generate_random()
 
     vacancy_id = vacancy_handler.create_vacancy(vacancy_item)
 
-    print(f'Created vacancy wih Id: {vacancy_id}\n')
+    if verbose:
+        print(f'Created vacancy wih Id: {vacancy_id}\n')
 
     retrieved_vacancy_data = vacancy_handler.read_vacancy(vacancy_id)
-    print(f'{retrieved_vacancy_data=}\n')
+    if verbose:
+        print(f'{retrieved_vacancy_data=}\n')
 
     vacancies = vacancy_handler.read_vacancies()
-    print(f'Current vacancy Ids: {vacancies}\n')
+    if verbose:
+        print(f'Current vacancy Ids: {vacancies}\n')
 
     updated_vacancy = vacancy_handler.update_vacancy(VacancyUpdate(Id=vacancy_id, Country=f'NEW_{retrieved_vacancy_data.Country}_NEW'))
-    print(f'{updated_vacancy=}\n')
+    if verbose:
+        print(f'{updated_vacancy=}\n')
 
     is_deleted = vacancy_handler.delete_vacancy(vacancy_id=vacancy_id)
-    print(f'Vacancy Id={vacancy_id} is deleted: {is_deleted}\n')
+    if verbose:
+        print(f'Vacancy Id={vacancy_id} is deleted: {is_deleted}\n')
+
+
+if __name__ == '__main__':
+    from dotenv import dotenv_values
+
+    VACANCY_SERVER_URL = dotenv_values().get('VACANCY_SERVER_URL')
+
+    verbose = True
+    
+    channel = create_channel(VACANCY_SERVER_URL)
+    with open('test_users.json', 'r') as f:
+        registered_user = json.load(f)[0]
+
+    is_user_signed_in = user_signin(registered_user['email'], registered_user['password'], channel)
+
+    if verbose:
+        print(f'User {registered_user["name"]} is signed in: {is_user_signed_in}\n')
+    vacancy_test(channel)
