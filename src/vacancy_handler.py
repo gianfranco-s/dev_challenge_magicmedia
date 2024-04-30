@@ -2,7 +2,7 @@ from dataclasses import dataclass, asdict
 from enum import Enum
 from typing import List
 
-from grpc import Channel
+from grpc import Channel, insecure_channel
 
 import proto_py.rpc_create_vacancy_pb2 as rpc__create__vacancy__pb2
 import proto_py.rpc_update_vacancy_pb2 as rpc__update__vacancy__pb2
@@ -37,46 +37,84 @@ class VacancyUpdate:
     Country: str = None
 
 
-def create_vacancy(vacancy_item: VacancyCreate, channel: Channel) -> str:
-    vacancy_stub = VacancyServiceStub(channel)
-    create_vacancy_request = rpc__create__vacancy__pb2.CreateVacancyRequest(**asdict(vacancy_item))
-    response = vacancy_stub.CreateVacancy(create_vacancy_request)
+class VacancyHandler:
+    def __init__(self, server_url: str) -> None:
+        self.channel = insecure_channel(server_url)
+        self.vacancy_stub = VacancyServiceStub(self.channel)
 
-    return response.vacancy.Id
+    def create_vacancy(self, vacancy_item: VacancyCreate) -> str:
+        """After successful creation returns Id"""
+        create_vacancy_request = rpc__create__vacancy__pb2.CreateVacancyRequest(**asdict(vacancy_item))
+        response = self.vacancy_stub.CreateVacancy(create_vacancy_request)
+
+        return response.vacancy.Id
+
+    def read_vacancy(self, vacancy_id: str) -> Vacancy:
+        """Returns Vacancy item"""
+        vacancy_request = vacancy__service__pb2.VacancyRequest(Id=vacancy_id)
+        response = self.vacancy_stub.GetVacancy(vacancy_request)
+
+        return response.vacancy
+
+    def read_vacancies(self) -> List[str]:
+        """Returns list of Id for existing vacancies"""
+        vacancies_request = vacancy__service__pb2.GetVacanciesRequest()
+        response = self.vacancy_stub.GetVacancies(vacancies_request)
+
+        vacancies = []
+        for vacancy in response:
+            vacancies.append(vacancy.Id)
+
+        return vacancies
+
+    def delete_vacancy(self, vacancy_id: str) -> bool:
+        """Returns status as bool"""
+        vacancy_request = vacancy__service__pb2.VacancyRequest(Id=vacancy_id)
+        response = self.vacancy_stub.DeleteVacancy(vacancy_request)
+
+        return response.success
+
+    def update_vacancy(self, vacancy_item: VacancyUpdate) -> Vacancy:
+        """Returns Vacancy item"""
+        update_vacancy_request = rpc__update__vacancy__pb2.UpdateVacancyRequest(**asdict(vacancy_item))
+        response = self.vacancy_stub.UpdateVacancy(update_vacancy_request)
+
+        return response.vacancy
 
 
-def read_vacancy(vacancy_id: str, channel: Channel) -> Vacancy:
-    vacancy_stub = VacancyServiceStub(channel)
-    vacancy_request = vacancy__service__pb2.VacancyRequest(Id=vacancy_id)
-    response = vacancy_stub.GetVacancy(vacancy_request)
+if __name__ == '__main__':
+    import json
 
-    return response.vacancy
+    from dotenv import dotenv_values
+    from user_signin import user_signin
 
+    VACANCY_SERVER_URL = dotenv_values().get('VACANCY_SERVER_URL')
 
-def read_vacancies(channel: Channel) -> List[str]:
-    vacancy_stub = VacancyServiceStub(channel)
-    vacancies_request = vacancy__service__pb2.GetVacanciesRequest()
-    response = vacancy_stub.GetVacancies(vacancies_request)
+    with open('test_users.json', 'r') as f:
+        registered_user = json.load(f)[0]
+    
+    vacancy_handler = VacancyHandler(VACANCY_SERVER_URL)
+    channel = vacancy_handler.channel
+    
+    is_user_signed_in = user_signin(registered_user['email'], registered_user['password'], channel)
+    print(f'User {registered_user["name"]} is signed in: {is_user_signed_in}\n')
 
-    vacancies = []
-    for vacancy in response:
-        print(vacancy)
-        vacancies.append(vacancy.Id)
+    vacancy_item = VacancyCreate(Title='Tlön, Uqbar',
+                                 Description='Orbis Tertius',
+                                 Division=DIVISION.SALES.value,
+                                 Country='Axaxaxas-mlö')
+    vacancy_id = vacancy_handler.create_vacancy(vacancy_item)
 
-    return vacancies
+    print(f'Created vacancy wih Id: {vacancy_id}\n')
 
+    vacancy_data = vacancy_handler.read_vacancy(vacancy_id)
+    print(f'{vacancy_data=}\n')
 
-def delete_vacancy(vacancy_id: str, channel: Channel) -> bool:
-    vacancy_stub = VacancyServiceStub(channel)
-    vacancy_request = vacancy__service__pb2.VacancyRequest(Id=vacancy_id)
-    response = vacancy_stub.DeleteVacancy(vacancy_request)
+    vacancies = vacancy_handler.read_vacancies()
+    print(f'Current vacancy Ids: {vacancies}\n')
 
-    return response.success
+    updated_vacancy = vacancy_handler.update_vacancy(VacancyUpdate(Id=vacancy_id, Country='Ookbar-yay!'))
+    print(f'{updated_vacancy=}\n')
 
-
-def update_vacancy(vacancy_item: VacancyUpdate, channel: Channel) -> bool:
-    vacancy_stub = VacancyServiceStub(channel)
-    update_vacancy_request = rpc__update__vacancy__pb2.UpdateVacancyRequest(**asdict(vacancy_item))
-    response = vacancy_stub.UpdateVacancy(update_vacancy_request)
-
-    return response.vacancy
+    is_deleted = vacancy_handler.delete_vacancy(vacancy_id=vacancy_id)
+    print(f'Vacancy Id={vacancy_id} is deleted: {is_deleted}\n')

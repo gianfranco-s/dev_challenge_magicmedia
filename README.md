@@ -72,3 +72,8 @@ To check if connection to the server is available. Run the script from the proje
 ```
 python3 src/sanity_check.py
 ```
+
+### Test user sign-in vacancy handler
+```
+python3 src/vacancy_handler.py
+```
