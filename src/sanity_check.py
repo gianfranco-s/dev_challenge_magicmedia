@@ -1,7 +1,6 @@
 import json
 
 import grpc
-import grpc._channel
 import proto_py.rpc_signin_user_pb2 as rpc__signin__user__pb2
 
 from dotenv import dotenv_values
