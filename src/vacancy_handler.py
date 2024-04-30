@@ -53,3 +53,11 @@ def read_vacancies(channel: Channel) -> List[str]:
         vacancies.append(vacancy.Id)
 
     return vacancies
+
+
+def delete_vacancy(vacancy_id: str, channel: Channel) -> bool:
+    vacancy_stub = VacancyServiceStub(channel)
+    vacancy_request = vacancy__service__pb2.VacancyRequest(Id=vacancy_id)
+    response = vacancy_stub.DeleteVacancy(vacancy_request)
+
+    return response.success
