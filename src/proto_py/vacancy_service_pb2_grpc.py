@@ -2,10 +2,10 @@
 """Client and server classes corresponding to protobuf-defined services."""
 import grpc
 
-import rpc_create_vacancy_pb2 as rpc__create__vacancy__pb2
-import rpc_update_vacancy_pb2 as rpc__update__vacancy__pb2
-import vacancy_pb2 as vacancy__pb2
-import vacancy_service_pb2 as vacancy__service__pb2
+import proto_py.rpc_create_vacancy_pb2 as rpc__create__vacancy__pb2
+import proto_py.rpc_update_vacancy_pb2 as rpc__update__vacancy__pb2
+import proto_py.vacancy_pb2 as vacancy__pb2
+import proto_py.vacancy_service_pb2 as vacancy__service__pb2
 
 
 class VacancyServiceStub(object):
