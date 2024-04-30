@@ -68,12 +68,17 @@ python -m grpc_tools.protoc \
 ```
 
 ### Run a sanity check
-To check if connection to the server is available. Run the script from the project's root directory:
+To check if connection to the server is available. Run the script from the directory src/:
 ```
-python3 src/sanity_check.py
+python3 sanity_check.py
 ```
 
 ### Test user sign-in vacancy handler
 ```
-python3 src/vacancy_handler.py
+python3 grpc_handlers.py
 ```
+
+### Run locust tests
+```
+locust --headless --users 3 --run-time 60
+``````
