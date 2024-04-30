@@ -89,11 +89,11 @@ def create_channel(server_url: str) -> Channel:
     return insecure_channel(server_url)
 
 
-def user_signin(user_email: str, user_pwd: str, channel: Channel) -> bool:
+def user_signin(channel: Channel, name: str, email: str, password: str, verbose: bool = False) -> bool:
     """ Sign-in valid user. If log in is successful, returns True. """
     auth_stub = AuthServiceStub(channel)
 
-    sign_in_request = rpc__signin__user__pb2.SignInUserInput(email=user_email, password=user_pwd)
+    sign_in_request = rpc__signin__user__pb2.SignInUserInput(email=email, password=password)
 
     try:
         response = auth_stub.SignInUser(sign_in_request)
@@ -103,35 +103,48 @@ def user_signin(user_email: str, user_pwd: str, channel: Channel) -> bool:
         print(e._state.code)
         is_user_signed_in = False
 
+    if verbose:
+        print(f'User {name} is signed in: {is_user_signed_in}\n')
+
     return is_user_signed_in
 
 
 class VacancyHandler:
-    def __init__(self, channel: Channel) -> None:
+    def __init__(self, channel: Channel, verbose: bool = False) -> None:
         self.vacancy_stub = VacancyServiceStub(channel)
+        self.verbose = verbose
 
     def create_vacancy(self, vacancy_item: VacancyCreate) -> str:
         """After successful creation returns Id"""
         create_vacancy_request = rpc__create__vacancy__pb2.CreateVacancyRequest(**asdict(vacancy_item))
         response = self.vacancy_stub.CreateVacancy(create_vacancy_request)
 
-        return response.vacancy.Id
+        vacancy_id = response.vacancy.Id
+        if self.verbose:
+            print(f'Created vacancy wih Id: {vacancy_id}\n')
+
+        return vacancy_id
 
     def read_vacancy(self, vacancy_id: str) -> VacancyFull:
         """Returns Vacancy item"""
         vacancy_request = vacancy__service__pb2.VacancyRequest(Id=vacancy_id)
         response = self.vacancy_stub.GetVacancy(vacancy_request)
 
-        return self.unpack_vacancy(response.vacancy)
+        retrieved_vacancy_data = self.unpack_vacancy(response.vacancy)
 
-    def read_vacancies(self, verbose: bool = False) -> List[str]:
+        if self.verbose:
+            print(f'{retrieved_vacancy_data=}\n')
+
+        return retrieved_vacancy_data
+
+    def read_vacancies(self) -> List[str]:
         """Returns list of Id for existing vacancies"""
         vacancies_request = vacancy__service__pb2.GetVacanciesRequest()
         response = self.vacancy_stub.GetVacancies(vacancies_request)
 
         vacancies = []
         for vacancy in response:
-            if verbose:
+            if self.verbose:
                 print(vacancy)
             vacancies.append(vacancy.Id)
 
@@ -142,14 +155,23 @@ class VacancyHandler:
         vacancy_request = vacancy__service__pb2.VacancyRequest(Id=vacancy_id)
         response = self.vacancy_stub.DeleteVacancy(vacancy_request)
 
-        return response.success
+        is_deleted = response.success
+
+        if self.verbose:
+            print(f'Vacancy Id={vacancy_id} is deleted: {is_deleted}\n')
+
+        return is_deleted
 
     def update_vacancy(self, vacancy_item: VacancyUpdate) -> VacancyFull:
         """Returns Vacancy item"""
         update_vacancy_request = rpc__update__vacancy__pb2.UpdateVacancyRequest(**asdict(vacancy_item))
         response = self.vacancy_stub.UpdateVacancy(update_vacancy_request)
 
-        return self.unpack_vacancy(response.vacancy)
+        updated_vacancy = self.unpack_vacancy(response.vacancy)
+        if self.verbose:
+            print(f'{updated_vacancy=}\n')
+
+        return updated_vacancy
     
     @staticmethod
     def unpack_vacancy(vacancy: Vacancy) -> VacancyFull:
@@ -163,32 +185,21 @@ class VacancyHandler:
                            updated_at=vacancy.updated_at)
 
 
-def vacancy_test(channel: Channel, verbose: bool = True) -> None:
+def vacancy_test(channel: Channel, verbose: bool) -> None:
     """Manual test of all VacancyHandler methods"""
 
-    vacancy_handler = VacancyHandler(channel)
+    vacancy_handler = VacancyHandler(channel, verbose=verbose)
     vacancy_item = VacancyCreate.generate_random()
 
     vacancy_id = vacancy_handler.create_vacancy(vacancy_item)
 
-    if verbose:
-        print(f'Created vacancy wih Id: {vacancy_id}\n')
-
     retrieved_vacancy_data = vacancy_handler.read_vacancy(vacancy_id)
-    if verbose:
-        print(f'{retrieved_vacancy_data=}\n')
 
     vacancies = vacancy_handler.read_vacancies()
-    if verbose:
-        print(f'Current vacancy Ids: {vacancies}\n')
 
     updated_vacancy = vacancy_handler.update_vacancy(VacancyUpdate(Id=vacancy_id, Country=f'NEW_{retrieved_vacancy_data.Country}_NEW'))
-    if verbose:
-        print(f'{updated_vacancy=}\n')
 
     is_deleted = vacancy_handler.delete_vacancy(vacancy_id=vacancy_id)
-    if verbose:
-        print(f'Vacancy Id={vacancy_id} is deleted: {is_deleted}\n')
 
 
 if __name__ == '__main__':
@@ -202,8 +213,6 @@ if __name__ == '__main__':
     with open('test_users.json', 'r') as f:
         registered_user = json.load(f)[0]
 
-    is_user_signed_in = user_signin(registered_user['email'], registered_user['password'], channel)
+    is_user_signed_in = user_signin(channel, **registered_user, verbose=verbose)
 
-    if verbose:
-        print(f'User {registered_user["name"]} is signed in: {is_user_signed_in}\n')
-    vacancy_test(channel)
+    vacancy_test(channel, verbose=verbose)
