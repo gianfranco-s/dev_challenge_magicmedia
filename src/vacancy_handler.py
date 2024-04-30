@@ -1,5 +1,6 @@
 from dataclasses import dataclass, asdict
 from enum import Enum
+from typing import List
 
 from grpc import Channel
 
@@ -39,3 +40,16 @@ def read_vacancy(vacancy_id: str, channel: Channel) -> Vacancy:
     response = vacancy_stub.GetVacancy(vacancy_request)
 
     return response.vacancy
+
+
+def read_vacancies(channel: Channel) -> List[str]:
+    vacancy_stub = VacancyServiceStub(channel)
+    vacancies_request = vacancy__service__pb2.GetVacanciesRequest()
+    response = vacancy_stub.GetVacancies(vacancies_request)
+
+    vacancies = []
+    for vacancy in response:
+        print(vacancy)
+        vacancies.append(vacancy.Id)
+
+    return vacancies
