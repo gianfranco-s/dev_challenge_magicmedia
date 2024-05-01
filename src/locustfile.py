@@ -1,10 +1,12 @@
 import json
+import random
+
 from typing import List
 
 from dotenv import dotenv_values
 from locust import HttpUser, task
 
-from grpc_handlers import create_channel, vacancy_test, user_signin
+from grpc_handlers import create_channel, vacancy_crud, user_signin
 
 VACANCY_SERVER_URL = dotenv_values().get('VACANCY_SERVER_URL')
 
@@ -16,15 +18,14 @@ class VacancyUser(HttpUser):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.channel = create_channel(self.host)
-        self.users = self._load_users()
+        self.user = self._load_random_user()
 
     @task
     def vacancy_flow_test(self):
-        for user in self.users:
-            user_signin(self.channel, **user, verbose=True)
-            vacancy_test(self.channel, verbose=True)
+        user_signin(self.channel, **self.user, verbose=True)
+        vacancy_crud(self.channel, verbose=True)
 
     @staticmethod
-    def _load_users(users_filename: str = 'test_users.json') -> List[dict]:
+    def _load_random_user(users_filename: str = 'test_users.json') -> List[dict]:
         with open(users_filename, 'r') as f:
-            return json.load(f)
+            return random.choice(json.load(f))
