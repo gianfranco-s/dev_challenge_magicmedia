@@ -1,16 +1,5 @@
-from locust_vacancy_user import VacancyUser
-from grpc_handlers import create_channel
+from locust_vacancy_user import create_vacancy_user_class
 
-class VacancyUserOne(VacancyUser):
-    def on_start(self) -> None:
-        self.flow_init(0)
-
-
-class VacancyUserTwo(VacancyUser):
-    def on_start(self) -> None:
-        self.flow_init(1)
-
-
-class VacancyUserThree(VacancyUser):
-    def on_start(self) -> None:
-        self.flow_init(2)
+VacancyUserOne = create_vacancy_user_class("VacancyUserOne", 0)
+VacancyUserTwo = create_vacancy_user_class("VacancyUserTwo", 1)
+VacancyUserThree = create_vacancy_user_class("VacancyUserThree", 2)

@@ -85,7 +85,7 @@ class VacancyFull:
                  )"
 
 
-def create_channel(server_url: str) -> Channel:
+def create_grpc_channel(server_url: str) -> Channel:
     return insecure_channel(server_url)
 
 
@@ -137,8 +137,12 @@ class VacancyHandler:
 
         return retrieved_vacancy_data
 
-    def read_vacancies(self) -> List[str]:
+    def read_vacancies(self, skip_troublesome_code: bool = False) -> List[str]:
         """Returns list of Id for existing vacancies"""
+        if skip_troublesome_code:
+            print('read_vacancies skipped')
+            return
+
         vacancies_request = vacancy__service__pb2.GetVacanciesRequest()
         response = self.vacancy_stub.GetVacancies(vacancies_request)
 
@@ -196,10 +200,10 @@ def vacancy_crud(channel: Channel, verbose: bool) -> None:
     is_deleted = vacancy_handler.delete_vacancy(vacancy_id=vacancy_id)
 
 
-def read_vacancies_idlist(channel: Channel, verbose: bool) -> None:
-    """Retrieves a list of current Id values for vacancies"""
+def read_vacancies_idlist(channel: Channel, verbose: bool, skip_read_vacancies: bool) -> None:
+    """Reads a list of current Id values for vacancies"""
     vacancy_handler = VacancyHandler(channel, verbose=verbose)
-    vacancies = vacancy_handler.read_vacancies()
+    vacancies = vacancy_handler.read_vacancies(skip_read_vacancies)
 
 
 if __name__ == '__main__':
@@ -209,9 +213,10 @@ if __name__ == '__main__':
 
     verbose = True
     
-    channel = create_channel(VACANCY_SERVER_URL)
+    channel = create_grpc_channel(VACANCY_SERVER_URL)
     with open('test_users.json', 'r') as f:
-        registered_user = json.load(f)[0]
+        user_credentials_idx = 0
+        registered_user = {k: v for k, v in json.load(f)[user_credentials_idx].items() if k != 'user_class_name'}
 
     is_user_signed_in = user_signin(channel, **registered_user, verbose=verbose)
 
