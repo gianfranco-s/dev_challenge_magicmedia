@@ -185,21 +185,21 @@ class VacancyHandler:
                            updated_at=vacancy.updated_at)
 
 
-def vacancy_test(channel: Channel, verbose: bool) -> None:
-    """Manual test of all VacancyHandler methods"""
+def vacancy_crud(channel: Channel, verbose: bool) -> None:
+    """Manual CRUD of all VacancyHandler methods"""
 
     vacancy_handler = VacancyHandler(channel, verbose=verbose)
-    vacancy_item = VacancyCreate.generate_random()
 
-    vacancy_id = vacancy_handler.create_vacancy(vacancy_item)
-
+    vacancy_id = vacancy_handler.create_vacancy(VacancyCreate.generate_random())
     retrieved_vacancy_data = vacancy_handler.read_vacancy(vacancy_id)
-
-    vacancies = vacancy_handler.read_vacancies()
-
     updated_vacancy = vacancy_handler.update_vacancy(VacancyUpdate(Id=vacancy_id, Country=f'NEW_{retrieved_vacancy_data.Country}_NEW'))
-
     is_deleted = vacancy_handler.delete_vacancy(vacancy_id=vacancy_id)
+
+
+def read_vacancies_idlist(channel: Channel, verbose: bool) -> None:
+    """Retrieves a list of current Id values for vacancies"""
+    vacancy_handler = VacancyHandler(channel, verbose=verbose)
+    vacancies = vacancy_handler.read_vacancies()
 
 
 if __name__ == '__main__':
@@ -215,4 +215,5 @@ if __name__ == '__main__':
 
     is_user_signed_in = user_signin(channel, **registered_user, verbose=verbose)
 
-    vacancy_test(channel, verbose=verbose)
+    vacancy_crud(channel, verbose=verbose)
+    read_vacancies_idlist(channel, verbose)
