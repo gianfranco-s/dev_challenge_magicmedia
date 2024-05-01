@@ -1,27 +1,34 @@
-import json
-import random
+from locust_vacancy_user import VacancyUser
+from grpc_handlers import create_channel
 
-from typing import List
-
-from locust import HttpUser, task, constant
-
-from grpc_handlers import create_channel, vacancy_crud, user_signin
-
-
-class VacancyUser(HttpUser):
-    wait_time = constant(30)
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+class VacancyUserOne(VacancyUser):
+    def on_start(self) -> None:
         self.channel = create_channel(self.host)
-        self.user = self._load_random_user()
+        self.user_credentials = {
+            'name': self.environment.user_classes[0].name,
+            'email': self.environment.user_classes[0].email,
+            'password': self.environment.user_classes[0].password,
+        }
+        print(self.user_credentials)
 
-    @task
-    def vacancy_flow_test(self):
-        user_signin(self.channel, **self.user, verbose=True)
-        vacancy_crud(self.channel, verbose=True)
 
-    @staticmethod
-    def _load_random_user(users_filename: str = 'test_users.json') -> List[dict]:
-        with open(users_filename, 'r') as f:
-            return random.choice(json.load(f))
+class VacancyUserTwo(VacancyUser):
+    def on_start(self) -> None:
+        self.channel = create_channel(self.host)
+        self.user_credentials = {
+            'name': self.environment.user_classes[1].name,
+            'email': self.environment.user_classes[1].email,
+            'password': self.environment.user_classes[1].password,
+        }
+        print(self.user_credentials)
+
+
+class VacancyUserThree(VacancyUser):
+    def on_start(self) -> None:
+        self.channel = create_channel(self.host)
+        self.user_credentials = {
+            'name': self.environment.user_classes[2].name,
+            'email': self.environment.user_classes[2].email,
+            'password': self.environment.user_classes[2].password,
+        }
+        print(self.user_credentials)

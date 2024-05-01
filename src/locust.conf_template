@@ -2,3 +2,4 @@ headless = true
 host = <url>
 users = 3
 run-time = 5m
+config-users = test_users.json
