@@ -9,7 +9,7 @@ class VacancyUser(User):
     user_credentials = None
 
     def on_start(self) -> None:
-        self.channel = create_channel(self.host)
+        pass
 
     @task
     def vacancy_flow_test(self) -> None:
@@ -17,3 +17,11 @@ class VacancyUser(User):
             user_signin(self.channel, **self.user_credentials, verbose=True)
         vacancy_crud(self.channel, verbose=True)
 
+    def flow_init(self, credentials_idx: int):
+        self.channel = create_channel(self.host)
+        self.user_credentials = {
+            'name': self.environment.user_classes[credentials_idx].name,
+            'email': self.environment.user_classes[credentials_idx].email,
+            'password': self.environment.user_classes[credentials_idx].password,
+        }
+        print(self.user_credentials)
