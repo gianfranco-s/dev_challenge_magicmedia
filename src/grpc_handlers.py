@@ -139,19 +139,17 @@ class VacancyHandler:
 
     def read_vacancies(self) -> List[str]:
         """Returns list of Id for existing vacancies"""
-        print('vacancies')
-        print('========================================')
 
-        # vacancies_request = vacancy__service__pb2.GetVacanciesRequest()
-        # response = self.vacancy_stub.GetVacancies(vacancies_request)
+        vacancies_request = vacancy__service__pb2.GetVacanciesRequest()
+        response = self.vacancy_stub.GetVacancies(vacancies_request)
 
-        # vacancies = []
-        # for vacancy in response:
-        #     if self.verbose:
-        #         print(vacancy)
-        #     vacancies.append(vacancy.Id)
+        vacancies = []
+        for vacancy in response:
+            if self.verbose:
+                print(vacancy)
+            vacancies.append(vacancy.Id)
 
-        # return vacancies
+        return vacancies
 
     def delete_vacancy(self, vacancy_id: str) -> bool:
         """Returns status as bool"""
@@ -200,7 +198,7 @@ def vacancy_crud(channel: Channel, verbose: bool) -> None:
 
 
 def read_vacancies_idlist(channel: Channel, verbose: bool) -> None:
-    """Retrieves a list of current Id values for vacancies"""
+    """Reads a list of current Id values for vacancies"""
     vacancy_handler = VacancyHandler(channel, verbose=verbose)
     vacancies = vacancy_handler.read_vacancies()
 

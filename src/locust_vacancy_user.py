@@ -1,12 +1,13 @@
 import gevent
 
 from locust import constant, task, User
+from locust.env import Environment
+from locust.user.users import UserMeta
 
 from grpc_handlers import create_grpc_channel, read_vacancies_idlist, vacancy_crud, user_signin, Channel
 
-
-VACANCY_WAIT_SECONDS = 30
-BACKGROUND_RETRIEVE_VACANCIES_SECONDS = 45
+VACANCY_WAIT_SECONDS = 10
+BACKGROUND_RETRIEVE_VACANCIES_SECONDS = 15
 
 
 class VacancyUser(User):
@@ -15,10 +16,13 @@ class VacancyUser(User):
     user_credentials = None
     channel = None
 
+    def __init__(self, environment: Environment, credentials_idx: int) -> None:
+        super().__init__(environment)
+        self.user_credentials = self.credentials_init(environment.user_classes[credentials_idx])
+
     def on_start(self) -> None:
         self.channel = self.create_channel(self.host)
         gevent.spawn(self._on_background, self.channel)
-        # self.credentials_init(0)
 
     @task
     def vacancy_flow_test(self) -> None:
@@ -26,15 +30,15 @@ class VacancyUser(User):
             user_signin(self.channel, **self.user_credentials, verbose=True)
         vacancy_crud(self.channel, verbose=True)
 
-    def credentials_init(self, credentials_idx: int) -> None:
+    @staticmethod
+    def credentials_init(user_classes_data: UserMeta) -> dict:
         """Initializes user credentials given in environment.user_classes"""
-
-        self.user_credentials = {
-            'name': self.environment.user_classes[credentials_idx].name,
-            'email': self.environment.user_classes[credentials_idx].email,
-            'password': self.environment.user_classes[credentials_idx].password,
+        return {
+            'name': user_classes_data.name,
+            'email': user_classes_data.email,
+            'password': user_classes_data.password,
         }
-        print(self.user_credentials)
+        # print(self.user_credentials)
 
     @staticmethod
     def _on_background(channel: Channel, interval_seconds: int = BACKGROUND_RETRIEVE_VACANCIES_SECONDS) -> None:
