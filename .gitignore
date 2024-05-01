@@ -9,3 +9,4 @@ __pycache__/
 Python Dev - Practical Test.pdf
 proto/
 test_users.json
+locust.conf
