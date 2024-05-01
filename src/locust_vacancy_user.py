@@ -6,8 +6,8 @@ from locust.user.users import UserMeta
 
 from grpc_handlers import create_grpc_channel, read_vacancies_idlist, vacancy_crud, user_signin, Channel
 
-VACANCY_WAIT_SECONDS = 10
-BACKGROUND_RETRIEVE_VACANCIES_SECONDS = 15
+VACANCY_WAIT_SECONDS = 30
+BACKGROUND_RETRIEVE_VACANCIES_SECONDS = 45
 
 
 class VacancyUser(User):
@@ -18,7 +18,7 @@ class VacancyUser(User):
 
     def __init__(self, environment: Environment, credentials_idx: int) -> None:
         super().__init__(environment)
-        self.user_credentials = self.credentials_init(environment.user_classes[credentials_idx])
+        self.user_credentials = self._load_credentials(environment.user_classes[credentials_idx])
 
     def on_start(self) -> None:
         self.channel = self.create_channel(self.host)
@@ -28,10 +28,10 @@ class VacancyUser(User):
     def vacancy_flow_test(self) -> None:
         if self.user_credentials is not None:
             user_signin(self.channel, **self.user_credentials, verbose=True)
-        vacancy_crud(self.channel, verbose=True)
+        # vacancy_crud(self.channel, verbose=True)
 
     @staticmethod
-    def credentials_init(user_classes_data: UserMeta) -> dict:
+    def _load_credentials(user_classes_data: UserMeta) -> dict:
         """Initializes user credentials given in environment.user_classes"""
         return {
             'name': user_classes_data.name,
@@ -44,6 +44,7 @@ class VacancyUser(User):
     def _on_background(channel: Channel, interval_seconds: int = BACKGROUND_RETRIEVE_VACANCIES_SECONDS) -> None:
         while True:
             gevent.sleep(interval_seconds)
+            print('vacancies')
             read_vacancies_idlist(channel, verbose=True)
 
     @staticmethod
