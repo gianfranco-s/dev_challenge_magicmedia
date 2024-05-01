@@ -1,5 +1,7 @@
 import gevent
 
+from types import new_class
+
 from locust import constant, task, User
 from locust.env import Environment
 from locust.user.users import UserMeta
@@ -33,12 +35,13 @@ class VacancyUser(User):
     @staticmethod
     def _load_credentials(user_classes_data: UserMeta) -> dict:
         """Initializes user credentials given in environment.user_classes"""
-        return {
-            'name': user_classes_data.name,
-            'email': user_classes_data.email,
-            'password': user_classes_data.password,
-        }
-        # print(self.user_credentials)
+        if user_classes_data is not None:
+            return {
+                'name': user_classes_data.name,
+                'email': user_classes_data.email,
+                'password': user_classes_data.password,
+            }
+            # print(self.user_credentials)
 
     @staticmethod
     def _on_background(channel: Channel, interval_seconds: int = BACKGROUND_RETRIEVE_VACANCIES_SECONDS) -> None:
@@ -50,3 +53,17 @@ class VacancyUser(User):
     @staticmethod
     def create_channel(server_address: str) -> Channel:
         return create_grpc_channel(server_address)
+
+
+def create_vacancy_user_class(class_name: str, credentials_idx: int) -> VacancyUser:
+    """Dynamically creates a new class inheriting from VacancyUser"""
+
+    VacancyUserSubclass = new_class(class_name, (VacancyUser,))
+
+    # Define the __init__ method within the new class
+    def __init__(self, environment: Environment):
+        super(VacancyUserSubclass, self).__init__(environment, credentials_idx)
+
+    VacancyUserSubclass.__init__ = __init__
+
+    return VacancyUserSubclass
