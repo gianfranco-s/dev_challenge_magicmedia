@@ -20,7 +20,7 @@ def sign_in_user(user_email: str, user_pwd: str, server_address: str = VACANCY_S
         password=user_pwd
     )
 
-    try: 
+    try:
         response = auth_stub.SignInUser(sign_in_request)
         is_user_signed_in = response.status == 'success'
     except grpc._channel._InactiveRpcError as e:
@@ -29,12 +29,12 @@ def sign_in_user(user_email: str, user_pwd: str, server_address: str = VACANCY_S
         is_user_signed_in = False
 
     return is_user_signed_in
-    
+
 
 if __name__ == "__main__":
     with open('test_users.json', 'r') as f:
         test_users = json.load(f)
-    
+
     registered_user = test_users[0]
     is_user_signed_in = sign_in_user(registered_user['email'], registered_user['password'])
     print(f'User {registered_user["name"]} is signed in: {is_user_signed_in}\n')
