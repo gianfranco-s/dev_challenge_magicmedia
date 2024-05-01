@@ -85,7 +85,7 @@ class VacancyFull:
                  )"
 
 
-def create_channel(server_url: str) -> Channel:
+def create_grpc_channel(server_url: str) -> Channel:
     return insecure_channel(server_url)
 
 
@@ -139,16 +139,19 @@ class VacancyHandler:
 
     def read_vacancies(self) -> List[str]:
         """Returns list of Id for existing vacancies"""
-        vacancies_request = vacancy__service__pb2.GetVacanciesRequest()
-        response = self.vacancy_stub.GetVacancies(vacancies_request)
+        print('vacancies')
+        print('========================================')
 
-        vacancies = []
-        for vacancy in response:
-            if self.verbose:
-                print(vacancy)
-            vacancies.append(vacancy.Id)
+        # vacancies_request = vacancy__service__pb2.GetVacanciesRequest()
+        # response = self.vacancy_stub.GetVacancies(vacancies_request)
 
-        return vacancies
+        # vacancies = []
+        # for vacancy in response:
+        #     if self.verbose:
+        #         print(vacancy)
+        #     vacancies.append(vacancy.Id)
+
+        # return vacancies
 
     def delete_vacancy(self, vacancy_id: str) -> bool:
         """Returns status as bool"""
@@ -209,9 +212,10 @@ if __name__ == '__main__':
 
     verbose = True
     
-    channel = create_channel(VACANCY_SERVER_URL)
+    channel = create_grpc_channel(VACANCY_SERVER_URL)
     with open('test_users.json', 'r') as f:
-        registered_user = json.load(f)[0]
+        user_credentials_idx = 0
+        registered_user = {k: v for k, v in json.load(f)[user_credentials_idx].items() if k != 'user_class_name'}
 
     is_user_signed_in = user_signin(channel, **registered_user, verbose=verbose)
 
