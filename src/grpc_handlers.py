@@ -137,8 +137,11 @@ class VacancyHandler:
 
         return retrieved_vacancy_data
 
-    def read_vacancies(self) -> List[str]:
+    def read_vacancies(self, skip_troublesome_code: bool = False) -> List[str]:
         """Returns list of Id for existing vacancies"""
+        if skip_troublesome_code:
+            print('read_vacancies skipped')
+            return
 
         vacancies_request = vacancy__service__pb2.GetVacanciesRequest()
         response = self.vacancy_stub.GetVacancies(vacancies_request)
@@ -197,10 +200,10 @@ def vacancy_crud(channel: Channel, verbose: bool) -> None:
     is_deleted = vacancy_handler.delete_vacancy(vacancy_id=vacancy_id)
 
 
-def read_vacancies_idlist(channel: Channel, verbose: bool) -> None:
+def read_vacancies_idlist(channel: Channel, verbose: bool, skip_read_vacancies: bool) -> None:
     """Reads a list of current Id values for vacancies"""
     vacancy_handler = VacancyHandler(channel, verbose=verbose)
-    vacancies = vacancy_handler.read_vacancies()
+    vacancies = vacancy_handler.read_vacancies(skip_read_vacancies)
 
 
 if __name__ == '__main__':

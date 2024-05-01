@@ -30,7 +30,7 @@ class VacancyUser(User):
     def vacancy_flow_test(self) -> None:
         if self.user_credentials is not None:
             user_signin(self.channel, **self.user_credentials, verbose=True)
-        # vacancy_crud(self.channel, verbose=True)
+        vacancy_crud(self.channel, verbose=True)
 
     @staticmethod
     def _load_credentials(user_classes_data: UserMeta) -> dict:
@@ -41,14 +41,12 @@ class VacancyUser(User):
                 'email': user_classes_data.email,
                 'password': user_classes_data.password,
             }
-            # print(self.user_credentials)
 
     @staticmethod
     def _on_background(channel: Channel, interval_seconds: int = BACKGROUND_RETRIEVE_VACANCIES_SECONDS) -> None:
         while True:
             gevent.sleep(interval_seconds)
-            print('vacancies')
-            read_vacancies_idlist(channel, verbose=True)
+            read_vacancies_idlist(channel, verbose=True, skip_read_vacancies=True)
 
     @staticmethod
     def create_channel(server_address: str) -> Channel:
