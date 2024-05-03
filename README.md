@@ -73,7 +73,7 @@ To check if connection to the server is available. Run the script from the direc
 python3 sanity_check.py
 ```
 
-### Test user sign-in vacancy handler
+### Test grpc calls
 ```
 python3 grpc_handlers.py
 ```
