@@ -1,3 +1,5 @@
+import json
+
 from dataclasses import asdict
 from typing import List
 
@@ -12,7 +14,7 @@ import proto_py.vacancy_service_pb2 as vacancy__service__pb2
 from proto_py.auth_service_pb2_grpc import AuthServiceStub
 from proto_py.vacancy_pb2 import Vacancy
 from proto_py.vacancy_service_pb2_grpc import VacancyServiceStub
-from logger_setup import grpc_logs
+from logger_setup import log_execution_time
 from grpc_dataclasses import DIVISION, VacancyCreate, VacancyFull, VacancyUpdate
 
 
@@ -45,7 +47,7 @@ class VacancyHandler:
         self.vacancy_stub = VacancyServiceStub(channel)
         self.verbose = verbose
 
-    @grpc_logs
+    @log_execution_time
     def create_vacancy(self, vacancy_item: VacancyCreate) -> str:
         """After successful creation returns Id"""
         create_vacancy_request = rpc__create__vacancy__pb2.CreateVacancyRequest(**asdict(vacancy_item))
@@ -57,6 +59,7 @@ class VacancyHandler:
 
         return vacancy_id
 
+    @log_execution_time
     def read_vacancy(self, vacancy_id: str) -> VacancyFull:
         """Returns Vacancy item"""
         vacancy_request = vacancy__service__pb2.VacancyRequest(Id=vacancy_id)
@@ -69,6 +72,7 @@ class VacancyHandler:
 
         return retrieved_vacancy_data
 
+    @log_execution_time
     def read_vacancies(self, skip_troublesome_code: bool = False) -> List[str]:
         """Returns list of Id for existing vacancies"""
         if skip_troublesome_code:
@@ -86,6 +90,7 @@ class VacancyHandler:
 
         return vacancies
 
+    @log_execution_time
     def delete_vacancy(self, vacancy_id: str) -> bool:
         """Returns status as bool"""
         vacancy_request = vacancy__service__pb2.VacancyRequest(Id=vacancy_id)
@@ -98,6 +103,7 @@ class VacancyHandler:
 
         return is_deleted
 
+    @log_execution_time
     def update_vacancy(self, vacancy_item: VacancyUpdate) -> VacancyFull:
         """Returns Vacancy item"""
         update_vacancy_request = rpc__update__vacancy__pb2.UpdateVacancyRequest(**asdict(vacancy_item))
@@ -146,11 +152,11 @@ if __name__ == '__main__':
     verbose = True
     
     channel = create_grpc_channel(VACANCY_SERVER_URL)
-    # with open('test_users.json', 'r') as f:
-    #     user_credentials_idx = 0
-    #     registered_user = {k: v for k, v in json.load(f)[user_credentials_idx].items() if k != 'user_class_name'}
+    with open('test_users.json', 'r') as f:
+        user_credentials_idx = 0
+        registered_user = {k: v for k, v in json.load(f)[user_credentials_idx].items() if k != 'user_class_name'}
 
-    # is_user_signed_in = user_signin(channel, **registered_user, verbose=verbose)
+    is_user_signed_in = user_signin(channel, **registered_user, verbose=verbose)
 
     vacancy_crud(channel, verbose=verbose)
     read_vacancies_idlist(channel, verbose, skip_read_vacancies=False)
