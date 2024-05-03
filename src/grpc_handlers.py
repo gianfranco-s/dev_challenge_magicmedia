@@ -1,13 +1,8 @@
-import json
-import random
-
-from dataclasses import dataclass, asdict
-from enum import Enum
+from dataclasses import asdict
 from typing import List
 
 from grpc import insecure_channel, Channel
 from grpc._channel import _InactiveRpcError
-from google.protobuf.timestamp_pb2 import Timestamp
 
 import proto_py.rpc_create_vacancy_pb2 as rpc__create__vacancy__pb2
 import proto_py.rpc_signin_user_pb2 as rpc__signin__user__pb2
@@ -17,72 +12,8 @@ import proto_py.vacancy_service_pb2 as vacancy__service__pb2
 from proto_py.auth_service_pb2_grpc import AuthServiceStub
 from proto_py.vacancy_pb2 import Vacancy
 from proto_py.vacancy_service_pb2_grpc import VacancyServiceStub
-
-
-@dataclass
-class DIVISION(Enum):
-    DEVELOPMENT = 0
-    SECURITY = 1
-    SALES = 2
-    OTHER = 3
-
-
-@dataclass
-class VacancyCreate:
-    Title: str
-    Description: str
-    Division: DIVISION
-    Country: str
-
-    @classmethod
-    def generate_random(cls) -> 'VacancyCreate':
-        """Generates a VacancyCreate object with random values."""
-        titles = ['Tlön, Uqbar', 'Funes', 'Titus', 'Labyrinth']
-        descriptions = ['Orbis Tertius', 'The Library', 'Why so Sirius?']
-        divisions = list(DIVISION)
-        countries = ['Axaxaxas-mlö', 'Babylonia', 'Atlantis']
-
-        return cls(
-            Title=random.choice(titles),
-            Description=random.choice(descriptions),
-            Division=random.choice(divisions).value,
-            Country=random.choice(countries)
-        )
-
-
-@dataclass
-class VacancyUpdate:
-    Id: str
-    Title: str = None
-    Description: str = None
-    Views: int = None
-    Division: DIVISION = None
-    Country: str = None
-
-
-@dataclass
-class VacancyFull:
-    Id: str
-    Title: str = None
-    Description: str = None
-    Views: int = None
-    Division: DIVISION = None
-    Country: str = None
-    created_at: Timestamp = None
-    updated_at: Timestamp = None
-
-    def __repr__(self):
-        division_name = self.Division.name if self.Division else None
-        return f"VacancyFull(\n\
-                 Id='{self.Id}',\n\
-                 Title='{self.Title}',\n\
-                 Description='{self.Description}',\n\
-                 Views={self.Views},\n\
-                 Division='{division_name}',\n\
-                 Country='{self.Country}',\n\
-                 created_at=(seconds: {self.created_at.seconds}, nanos: {self.created_at.nanos}),\n\
-                 updated_at=(seconds: {self.updated_at.seconds}, nanos: {self.updated_at.nanos})\n\
-                 )"
+from logger_setup import grpc_logs
+from grpc_dataclasses import DIVISION, VacancyCreate, VacancyFull, VacancyUpdate
 
 
 def create_grpc_channel(server_url: str) -> Channel:
@@ -114,6 +45,7 @@ class VacancyHandler:
         self.vacancy_stub = VacancyServiceStub(channel)
         self.verbose = verbose
 
+    @grpc_logs
     def create_vacancy(self, vacancy_item: VacancyCreate) -> str:
         """After successful creation returns Id"""
         create_vacancy_request = rpc__create__vacancy__pb2.CreateVacancyRequest(**asdict(vacancy_item))
@@ -214,11 +146,11 @@ if __name__ == '__main__':
     verbose = True
     
     channel = create_grpc_channel(VACANCY_SERVER_URL)
-    with open('test_users.json', 'r') as f:
-        user_credentials_idx = 0
-        registered_user = {k: v for k, v in json.load(f)[user_credentials_idx].items() if k != 'user_class_name'}
+    # with open('test_users.json', 'r') as f:
+    #     user_credentials_idx = 0
+    #     registered_user = {k: v for k, v in json.load(f)[user_credentials_idx].items() if k != 'user_class_name'}
 
-    is_user_signed_in = user_signin(channel, **registered_user, verbose=verbose)
+    # is_user_signed_in = user_signin(channel, **registered_user, verbose=verbose)
 
     vacancy_crud(channel, verbose=verbose)
-    read_vacancies_idlist(channel, verbose)
+    read_vacancies_idlist(channel, verbose, skip_read_vacancies=False)
